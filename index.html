@@ -72,8 +72,8 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Noto San
 .drop-t strong{color:var(--or);font-weight:500}
 
 /* PREVIEW */
-.preview-wrap{background:#000;border-radius:var(--r);overflow:hidden;position:relative;min-height:200px;display:flex;align-items:center;justify-content:center}
-#preview-canvas{width:100%;display:none}
+.preview-wrap{background:#000;border-radius:var(--r);overflow:hidden;position:relative;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%}
+#preview-canvas{width:100% !important;height:auto !important;display:none;max-width:100%}
 .preview-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--txd)}
 .preview-empty p{font-size:12px;letter-spacing:1px;font-family:'Bebas Neue',sans-serif}
 
@@ -307,14 +307,20 @@ async function load(file){
 async function render(){
   if(!pdfDoc)return;
   const page=await pdfDoc.getPage(cur);
-  const vp=page.getViewport({scale:1.5});
+  const wrap=document.getElementById('preview-canvas').parentElement;
+  const cw=wrap.clientWidth||window.innerWidth-32;
+  const vp0=page.getViewport({scale:1});
+  const scale=cw/vp0.width;
+  const vp=page.getViewport({scale});
   const canvas=document.getElementById('preview-canvas');
   const ctx=canvas.getContext('2d');
   canvas.width=vp.width; canvas.height=vp.height;
   canvas.style.display='block';
+  canvas.style.width='100%';
+  canvas.style.height='auto';
   document.getElementById('pe').style.display='none';
   await page.render({canvasContext:ctx,viewport:vp}).promise;
-  wmOverlay(ctx,canvas.width,canvas.height,1.5);
+  wmOverlay(ctx,canvas.width,canvas.height,scale);
 }
 
 function wmOverlay(ctx,w,h,scale){
